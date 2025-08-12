@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat Widget Demo</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            text-align: center;
+            background-color: #f5f5f5;
+        }
+        h1 {
+            color: #854fff;
+            margin-bottom: 20px;
+        }
+        p {
+            color: #666;
+            font-size: 18px;
+            line-height: 1.6;
+        }
+        .container {
+            background: white;
+            padding: 40px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        @keyframes pulse {
+            0% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.1); opacity: 0.8; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Welcome to Chat Widget Demo</h1>
+        <p>The chat widget should appear in the bottom right corner of this page.</p>
+    </div>
+
+    <script>
+        window.ChatWidgetConfig = {
+            webhook: {
+                url: 'https://n8n.devmesh.xyz/webhook/932dc328-f1bc-470e-ae29-3cb593f439a4/chat',
+                route: 'general'
+            },
+            branding: {
+                logo: 'https://upload.wikimedia.org/wikipedia/commons/thumb/a/a7/React-icon.svg/1200px-React-icon.svg.png',
+                name: 'AGENTIT',
+                welcomeText: 'Hi 👋, how can we help?',
+                responseTimeText: 'We typically respond right away'
+            },
+            window: {
+                controls: {
+                    minimize: true,
+                    maximize: true,
+                    close: true
+                },
+                defaultState: 'minimized',
+                minimizedIcon: '💬'
+            },
+            style: {
+                primaryColor: '#854fff',
+                secondaryColor: '#6b3fd4',
+                position: 'right',
+                backgroundColor: '#ffffff',
+                fontColor: '#333333',
+                borderRadius: '10px',
+                boxShadow: '0 2px 10px rgba(0,0,0,0.1)',
+                header: {
+                    controls: {
+                        color: '#000000',
+                        hoverColor: '#333333',
+                        size: '24px',
+                        spacing: '8px'
+                    }
+                }
+            },
+            features: {
+                fileUpload: {
+                    enabled: true,
+                    maxSize: 10, // Increased file size limit
+                    allowedTypes: ['application/pdf', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'text/plain', 'image/jpeg', 'image/png'],
+                    uploadEndpoint: 'https://n8n.devmesh.xyz/webhook/932dc328-f1bc-470e-ae29-3cb593f439a4/upload'
+                },
+                voiceMessages: {
+                    enabled: true,
+                    maxDuration: 60,
+                    audioFormat: 'audio/webm',
+                    uploadEndpoint: 'https://n8n.devmesh.xyz/webhook/932dc328-f1bc-470e-ae29-3cb593f439a4/voice'
+                }
+            },
+            proactive: {
+                enabled: true,
+                initialState: 'minimized',
+                beacon: {
+                    enabled: true,
+                    animation: 'pulse',
+                    duration: '2s',
+                    timing: 'infinite',
+                    color: '#854fff'
+                },
+                welcomeMessage: {
+                    delay: 4000,
+                    triggers: {
+                        scroll: true,
+                        scrollThreshold: 25
+                    },
+                    contextual: {
+                        '/': {
+                            message: 'Welcome! Looking for something specific? I can help you find it.',
+                            actions: [
+                                { label: 'Products', value: 'show_products' },
+                                { label: 'Services', value: 'show_services' },
+                                { label: 'Contact Us', value: 'contact' }
+                            ]
+                        },
+                        '/pricing': {
+                            message: 'Comparing our plans? I can help you find the perfect fit!',
+                            actions: [
+                                { label: 'Compare Plans', value: 'compare_plans' },
+                                { label: 'See Demo', value: 'request_demo' },
+                                { label: 'Talk to Sales', value: 'talk_sales' }
+                            ]
+                        },
+                        '/help': {
+                            message: "Can't find your answer? Just ask me directly.",
+                            actions: [
+                                { label: 'FAQ', value: 'show_faq' },
+                                { label: 'Support', value: 'get_support' }
+                            ]
+                        }
+                    }
+                },
+                toast: {
+                    position: 'above',
+                    style: {
+                        backgroundColor: '#ffffff',
+                        borderRadius: '10px',
+                        boxShadow: '0 2px 10px rgba(0,0,0,0.1)',
+                        padding: '12px',
+                        maxWidth: '280px'
+                    }
+                }
+            },
+            ui: {
+                composer: {
+                    placeholder: 'Type, talk, or upload a file...',
+                    icons: {
+                        fileUpload: '📎',
+                        voiceInput: '🎤'
+                    }
+                },
+                responses: {
+                    markdown: true,
+                    feedback: {
+                        enabled: true,
+                        options: ['👍', '👎']
+                    }
+                }
+            }
+        };
+    </script>
+    <script src="https://cdn.jsdelivr.net/gh/juansebsol/n8n-chatbot-template@latest/chat-widget.js"></script>
+</body>
+</html>
