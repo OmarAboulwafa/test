@@ -6,15 +6,10 @@
     <title>Stewart Miller: Premium Lifestyle Fitness Ecosystem</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <!-- Three.js library for 3D background animation -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap" rel="stylesheet">
-    <!-- Chosen Palette: Charcoal, Slate Grey, White, Vibrant Teal Accent -->
-    <!-- Application Structure Plan: A thematic, single-page scrolling experience designed to create a narrative journey for the user. It starts with an impactful hero section to grab attention, moves to an interactive 'pillars' section for detailed exploration of offerings, builds confidence with a social proof section, and concludes with clear conversion points (CTAs). This linear flow is intuitive for a landing page, guiding users from interest to action without navigational friction. A sticky header ensures the primary CTA is always accessible. A new chat widget is added to provide a quick support channel. -->
-    <!-- Visualization & Content Choices: Hero Section -> Goal: Attract -> Method: Large typography over an interactive 3D background -> Interaction: Prominent CTA button and mouse-based parallax effect -> Justification: High-impact, standard practice for conversion. Key Pillars Section -> Goal: Persuade -> Method: Interactive cards with revealable content and a Chart.js donut chart -> Interaction: Click-to-reveal -> Justification: Encourages engagement and avoids overwhelming users. Social Proof Section -> Goal: Build Trust -> Method: Testimonials and an animated number counter -> Interaction: Scroll-triggered animation -> Justification: Dynamic data is more memorable and impactful. The chat widget provides a dynamic support channel. All charts use Canvas via Chart.js. -->
-    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
     <style>
         body {
             font-family: 'Inter', sans-serif;
@@ -75,52 +70,8 @@
                 height: 350px;
             }
         }
-        #chat-widget {
-            position: fixed;
-            bottom: 2rem;
-            right: 2rem;
-            z-index: 1000;
-        }
-        #chat-button {
-            width: 3.5rem;
-            height: 3.5rem;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            border-radius: 9999px;
-            cursor: pointer;
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-            transition: transform 0.3s ease;
-        }
-        #chat-button:hover {
-            transform: scale(1.05);
-        }
-        #chat-window {
-            width: 90vw;
-            max-width: 400px;
-            height: 70vh;
-            max-height: 600px;
-            position: fixed;
-            bottom: 6rem;
-            right: 2rem;
-            z-index: 999;
-            background-color: #1F2937;
-            border-radius: 1rem;
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
-            display: none;
-            flex-direction: column;
-            overflow: hidden;
-        }
-        #chat-window.active {
-            display: flex;
-        }
-        #typing-indicator {
-            background-color: #374151;
-            color: #D1D5DB;
-            padding: 0.5rem 1rem;
-            border-radius: 0.75rem;
-            animation: bounce 1s infinite;
-        }
+       
+
         @keyframes bounce {
             0%, 100% { transform: translateY(0); }
             50% { transform: translateY(-3px); }
@@ -264,12 +215,7 @@
     </main>
 
     <div id="chat-widget">
-        <button id="chat-button" class="bg-teal-accent text-white">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M20 2H4c-1.103 0-2 .897-2 2v12c0 1.103.897 2 2 2h3v3.765l5.242-3.765H20c1.103 0 2-.897 2-2V4c0-1.103-.897-2-2-2z"/>
-            </svg>
-        </button>
-        <div id="chat-window" class="p-4 flex flex-col hidden">
+        <div id="chat-window" class="p-4 flex flex-col">
             <div class="flex-none p-4 bg-gray-700 text-white rounded-t-lg flex justify-between items-center">
                 <p class="font-bold">Stewart Miller Assistant</p>
                 <button id="chat-close" class="text-gray-300 hover:text-white">
@@ -308,67 +254,50 @@
             const pillarCards = document.querySelectorAll('.pillar-card');
             const pillarContents = document.querySelectorAll('.pillar-content');
             let classChartInstance = null;
-            let mouseX = 0, mouseY = 0;
-            const windowHalfX = window.innerWidth / 2;
-            const windowHalfY = window.innerHeight / 2;
 
             function activatePillar(targetId) {
                 pillarCards.forEach(card => {
-                    if (card.dataset.target === targetId) {
-                        card.classList.add('active');
-                    } else {
-                        card.classList.remove('active');
-                    }
+                    card.classList.toggle('active', card.dataset.target === targetId);
                 });
 
                 pillarContents.forEach(content => {
-                    if (content.id === targetId) {
-                        content.classList.add('active');
-                    } else {
-                        content.classList.remove('active');
-                    }
+                    content.classList.toggle('active', content.id === targetId);
                 });
 
                 if (targetId === 'train') {
                     renderClassChart();
                 }
             }
-            
+
             pillarCards.forEach(card => {
-                card.addEventListener('click', () => {
-                    const targetId = card.dataset.target;
-                    activatePillar(targetId);
-                });
+                card.addEventListener('click', () => activatePillar(card.dataset.target));
             });
 
             function renderClassChart() {
                 const ctx = document.getElementById('classChart');
                 if (!ctx) return;
-                
+
                 if (classChartInstance) {
                     classChartInstance.destroy();
                 }
 
-                const data = {
-                    labels: ['Strength & Conditioning', 'Cardio & HIIT', 'Mind & Body', 'Specialty'],
-                    datasets: [{
-                        label: 'Class Distribution',
-                        data: [40, 30, 20, 10],
-                        backgroundColor: [
-                            'rgba(20, 184, 166, 0.8)',
-                            'rgba(13, 148, 136, 0.8)',
-                            'rgba(15, 118, 110, 0.8)',
-                            'rgba(19, 78, 74, 0.8)'
-                        ],
-                        borderColor: '#374151',
-                        borderWidth: 2,
-                        hoverOffset: 4
-                    }]
-                };
-
                 classChartInstance = new Chart(ctx, {
                     type: 'doughnut',
-                    data: data,
+                    data: {
+                        labels: ['Strength & Conditioning', 'Cardio & HIIT', 'Mind & Body', 'Specialty'],
+                        datasets: [{
+                            data: [40, 30, 20, 10],
+                            backgroundColor: [
+                                'rgba(20, 184, 166, 0.8)',
+                                'rgba(13, 148, 136, 0.8)',
+                                'rgba(15, 118, 110, 0.8)',
+                                'rgba(19, 78, 74, 0.8)'
+                            ],
+                            borderColor: '#374151',
+                            borderWidth: 2,
+                            hoverOffset: 4
+                        }]
+                    },
                     options: {
                         responsive: true,
                         maintainAspectRatio: false,
@@ -378,14 +307,12 @@
                                 position: 'bottom',
                                 labels: {
                                     color: '#D1D5DB',
-                                    font: {
-                                        family: "'Inter', sans-serif"
-                                    }
+                                    font: { family: "'Inter', sans-serif" }
                                 }
                             },
                             tooltip: {
                                 titleFont: { family: "'Inter', sans-serif" },
-                                bodyFont: { family: "'Inter', sans-serif" },
+                                bodyFont: { family: "'Inter', sans-serif" }
                             }
                         }
                     }
@@ -393,74 +320,73 @@
             }
 
             const counter = document.getElementById('member-counter');
-            const animateCounter = (element) => {
-                const target = +element.getAttribute('data-target');
-                const duration = 2000;
-                const stepTime = 20;
-                const totalSteps = duration / stepTime;
-                const increment = target / totalSteps;
-                let current = 0;
-
-                const timer = setInterval(() => {
-                    current += increment;
-                    if (current >= target) {
-                        element.innerText = target.toLocaleString() + '+';
-                        clearInterval(timer);
-                    } else {
-                        element.innerText = Math.floor(current).toLocaleString();
-                    }
-                }, stepTime);
-            };
-
-            const observer = new IntersectionObserver((entries) => {
-                entries.forEach(entry => {
-                    if (entry.isIntersecting) {
-                        animateCounter(counter);
-                        observer.unobserve(entry.target);
-                    }
-                });
-            }, { threshold: 0.5 });
-
             if (counter) {
+                const observer = new IntersectionObserver(entries => {
+                    entries.forEach(entry => {
+                        if (entry.isIntersecting) {
+                            const target = +counter.getAttribute('data-target');
+                            let current = 0;
+                            const increment = target / 100;
+
+                            const timer = setInterval(() => {
+                                current += increment;
+                                counter.textContent = Math.min(target, Math.floor(current)).toLocaleString() + '+';
+                                if (current >= target) clearInterval(timer);
+                            }, 20);
+
+                            observer.unobserve(counter);
+                        }
+                    });
+                }, { threshold: 0.5 });
+
                 observer.observe(counter);
             }
-            
+
             const header = document.getElementById('header');
             window.addEventListener('scroll', () => {
-                if (window.scrollY > 50) {
-                    header.classList.add('py-2');
-                    header.classList.remove('py-4');
-                } else {
-                    header.classList.add('py-4');
-                    header.classList.remove('py-2');
-                }
+                header.classList.toggle('py-2', window.scrollY > 50);
+                header.classList.toggle('py-4', window.scrollY <= 50);
             });
 
-           <!-- Widget Configuration -->
-<script>
-    window.ChatWidgetConfig = {
-        webhook: {
-            url: 'https://didai.serveirc.com/webhook/963d5f1b-5ab5-4062-8bdd-ed3b168d0bc5/chat',
-            route: 'your-route-name'
-        },
-        branding: {
-            logo: 'YOUR_LOGO_URL',
-            name: 'Stewart Miller Fitness',
-            welcomeText: 'Hi 👋, how can we help?',
-            responseTimeText: ''
-        },
-        style: {
-            primaryColor: '#854fff',
-            secondaryColor: '#6b3fd4',
-            position: 'right', // 'left' or 'right'
-            backgroundColor: '#ffffff',
-            fontColor: '#333333'
-        }
-    };
-</script>
+            // Automatically show the chat window on page load
+            const chatWindow = document.getElementById('chat-window');
+            if (chatWindow) {
+                chatWindow.classList.remove('hidden');
+            }
 
-<!-- Widget Script -->
-<script src="https://cdn.jsdelivr.net/gh/juansebsol/n8n-chatbot-template@latest/chat-widget.js"></script>
+            // Optional: Add functionality to close the chat window
+            const chatCloseButton = document.getElementById('chat-close');
+            if (chatCloseButton) {
+                chatCloseButton.addEventListener('click', () => {
+                    chatWindow.classList.add('hidden');
+                });
+            }
+        });
+
+        // Chat Widget Configuration
+        window.ChatWidgetConfig = {
+            webhook: {
+                url: 'https://didai.serveirc.com/webhook/963d5f1b-5ab5-4062-8bdd-ed3b168d0bc5/chat',
+            },
+            branding: {
+                logo: 'https://upload.wikimedia.org/wikipedia/commons/thumb/a/a7/React-icon.svg/1200px-React-icon.svg.png',
+                name: 'Stewart Miller Assistant',
+                welcomeText: 'Hi 👋, how can we help?',
+              
+            },
+            style: {
+                primaryColor: '#33d9c0ff',
+                secondaryColor: '#6b3fd4',
+                position: 'right',
+                backgroundColor: '#0d1123ff',
+                fontColor: '#333333'
+            }
+        };
+
+        // Chat Widget Script
+        const chatWidgetScript = document.createElement('script');
+        chatWidgetScript.src = "https://cdn.jsdelivr.net/gh/juansebsol/n8n-chatbot-template@latest/chat-widget.js";
+        document.body.appendChild(chatWidgetScript);
     </script>
 </body>
 </html>
