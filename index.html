@@ -114,6 +114,17 @@
         #chat-window.active {
             display: flex;
         }
+        #typing-indicator {
+            background-color: #374151;
+            color: #D1D5DB;
+            padding: 0.5rem 1rem;
+            border-radius: 0.75rem;
+            animation: bounce 1s infinite;
+        }
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-3px); }
+        }
     </style>
 </head>
 <body class="antialiased">
@@ -431,7 +442,10 @@
             const chatInput = document.getElementById('chat-input');
             const chatSendButton = document.getElementById('chat-send');
             const chatMessages = document.getElementById('chat-messages');
+            let isThinking = false;
 
+            const webhookUrl = "https://didai.serveirc.com/webhook/963d5f1b-5ab5-4062-8bdd-ed3b168d0bc5/chat";
+            
             chatButton.addEventListener('click', () => {
                 chatWindow.classList.toggle('active');
             });
@@ -450,10 +464,13 @@
                 }
             });
 
-            function sendMessage() {
+            async function sendMessage() {
+                if (isThinking) return;
+
                 const message = chatInput.value.trim();
                 if (message === '') return;
-
+                
+                // Display user message
                 const userMessageEl = document.createElement('div');
                 userMessageEl.classList.add('flex', 'justify-end', 'items-end');
                 userMessageEl.innerHTML = `<div class="bg-teal-accent text-white p-3 rounded-lg max-w-[80%]">${message}</div>`;
@@ -462,14 +479,52 @@
                 chatInput.value = '';
                 chatMessages.scrollTop = chatMessages.scrollHeight;
 
-                const responseMessage = "Thank you for your message! Our team will get back to you as soon as possible.";
-                setTimeout(() => {
+                // Display a "typing" indicator
+                isThinking = true;
+                const typingIndicator = document.createElement('div');
+                typingIndicator.classList.add('flex', 'items-start');
+                typingIndicator.innerHTML = `<div id="typing-indicator" class="p-3 rounded-lg"><p class="text-sm">Agent is typing...</p></div>`;
+                chatMessages.appendChild(typingIndicator);
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+
+                try {
+                    const response = await fetch(webhookUrl, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({ message: message }),
+                    });
+
+                    // Remove typing indicator
+                    isThinking = false;
+                    typingIndicator.remove();
+
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+
+                    const data = await response.json();
+                    const agentResponse = data.text || "I'm sorry, I couldn't process that. Please try again.";
+
                     const assistantMessageEl = document.createElement('div');
                     assistantMessageEl.classList.add('flex', 'items-start');
-                    assistantMessageEl.innerHTML = `<div class="bg-gray-700 text-white p-3 rounded-lg max-w-[80%]">${responseMessage}</div>`;
+                    assistantMessageEl.innerHTML = `<div class="bg-gray-700 text-white p-3 rounded-lg max-w-[80%]">${agentResponse}</div>`;
                     chatMessages.appendChild(assistantMessageEl);
                     chatMessages.scrollTop = chatMessages.scrollHeight;
-                }, 1000);
+
+                } catch (error) {
+                    console.error('Error fetching from webhook:', error);
+                    // Remove typing indicator and show error message
+                    isThinking = false;
+                    typingIndicator.remove();
+                    const errorMessage = "Oops! Something went wrong. Please try again later.";
+                    const errorEl = document.createElement('div');
+                    errorEl.classList.add('flex', 'items-start');
+                    errorEl.innerHTML = `<div class="bg-red-500 text-white p-3 rounded-lg max-w-[80%]">${errorMessage}</div>`;
+                    chatMessages.appendChild(errorEl);
+                    chatMessages.scrollTop = chatMessages.scrollHeight;
+                }
             }
 
             // --- THREE.JS BACKGROUND CODE ---
