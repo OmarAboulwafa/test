@@ -436,186 +436,31 @@
                 }
             });
 
-            const chatButton = document.getElementById('chat-button');
-            const chatWindow = document.getElementById('chat-window');
-            const chatCloseButton = document.getElementById('chat-close');
-            const chatInput = document.getElementById('chat-input');
-            const chatSendButton = document.getElementById('chat-send');
-            const chatMessages = document.getElementById('chat-messages');
-            let isThinking = false;
+           <!-- Widget Configuration -->
+<script>
+    window.ChatWidgetConfig = {
+        webhook: {
+            url: 'https://didai.serveirc.com/webhook/963d5f1b-5ab5-4062-8bdd-ed3b168d0bc5/chat',
+            route: 'your-route-name'
+        },
+        branding: {
+            logo: 'YOUR_LOGO_URL',
+            name: 'Stewart Miller Fitness',
+            welcomeText: 'Hi 👋, how can we help?',
+            responseTimeText: ''
+        },
+        style: {
+            primaryColor: '#854fff',
+            secondaryColor: '#6b3fd4',
+            position: 'right', // 'left' or 'right'
+            backgroundColor: '#ffffff',
+            fontColor: '#333333'
+        }
+    };
+</script>
 
-            const webhookUrl = "https://didai.serveirc.com/webhook/963d5f1b-5ab5-4062-8bdd-ed3b168d0bc5/chat";
-            
-            chatButton.addEventListener('click', () => {
-                chatWindow.classList.toggle('active');
-            });
-
-            chatCloseButton.addEventListener('click', () => {
-                chatWindow.classList.remove('active');
-            });
-
-            chatSendButton.addEventListener('click', () => {
-                sendMessage();
-            });
-
-            chatInput.addEventListener('keypress', (e) => {
-                if (e.key === 'Enter') {
-                    sendMessage();
-                }
-            });
-
-            async function sendMessage() {
-                if (isThinking) return;
-
-                const message = chatInput.value.trim();
-                if (message === '') return;
-                
-                // Display user message
-                const userMessageEl = document.createElement('div');
-                userMessageEl.classList.add('flex', 'justify-end', 'items-end');
-                userMessageEl.innerHTML = `<div class="bg-teal-accent text-white p-3 rounded-lg max-w-[80%]">${message}</div>`;
-                chatMessages.appendChild(userMessageEl);
-
-                chatInput.value = '';
-                chatMessages.scrollTop = chatMessages.scrollHeight;
-
-                // Display a "typing" indicator
-                isThinking = true;
-                const typingIndicator = document.createElement('div');
-                typingIndicator.classList.add('flex', 'items-start');
-                typingIndicator.innerHTML = `<div id="typing-indicator" class="p-3 rounded-lg"><p class="text-sm">Agent is typing...</p></div>`;
-                chatMessages.appendChild(typingIndicator);
-                chatMessages.scrollTop = chatMessages.scrollHeight;
-
-                try {
-                    const response = await fetch(webhookUrl, {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                        },
-                        body: JSON.stringify({ message: message }),
-                    });
-
-                    // Remove typing indicator
-                    isThinking = false;
-                    typingIndicator.remove();
-
-                    if (!response.ok) {
-                        throw new Error(`HTTP error! status: ${response.status}`);
-                    }
-
-                    const data = await response.json();
-                    const agentResponse = data.text || "I'm sorry, I couldn't process that. Please try again.";
-
-                    const assistantMessageEl = document.createElement('div');
-                    assistantMessageEl.classList.add('flex', 'items-start');
-                    assistantMessageEl.innerHTML = `<div class="bg-gray-700 text-white p-3 rounded-lg max-w-[80%]">${agentResponse}</div>`;
-                    chatMessages.appendChild(assistantMessageEl);
-                    chatMessages.scrollTop = chatMessages.scrollHeight;
-
-                } catch (error) {
-                    console.error('Error fetching from webhook:', error);
-                    // Remove typing indicator and show error message
-                    isThinking = false;
-                    typingIndicator.remove();
-                    const errorMessage = "Oops! Something went wrong. Please try again later.";
-                    const errorEl = document.createElement('div');
-                    errorEl.classList.add('flex', 'items-start');
-                    errorEl.innerHTML = `<div class="bg-red-500 text-white p-3 rounded-lg max-w-[80%]">${errorMessage}</div>`;
-                    chatMessages.appendChild(errorEl);
-                    chatMessages.scrollTop = chatMessages.scrollHeight;
-                }
-            }
-
-            // --- THREE.JS BACKGROUND CODE ---
-            let scene, camera, renderer, particles;
-
-            // Initialize the 3D scene
-            function initThreeJS() {
-                const canvas = document.getElementById('three-bg');
-                if (!canvas) return;
-
-                // Scene and camera setup
-                scene = new THREE.Scene();
-                camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-                camera.position.z = 5;
-
-                // Renderer setup
-                renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
-                renderer.setSize(window.innerWidth, window.innerHeight);
-                renderer.setPixelRatio(window.devicePixelRatio);
-                canvas.appendChild(renderer.domElement);
-                
-                // Lights
-                const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
-                scene.add(ambientLight);
-                const pointLight = new THREE.PointLight(0xffffff, 1);
-                pointLight.position.set(0, 0, 50);
-                scene.add(pointLight);
-
-                // Create particles
-                const particleCount = 2000;
-                const geometry = new THREE.BufferGeometry();
-                const positions = [];
-                for (let i = 0; i < particleCount; i++) {
-                    const x = (Math.random() - 0.5) * 50;
-                    const y = (Math.random() - 0.5) * 50;
-                    const z = (Math.random() - 0.5) * 50;
-                    positions.push(x, y, z);
-                }
-                geometry.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
-                
-                const material = new THREE.PointsMaterial({
-                    color: 0x14B8A6,
-                    size: 0.1,
-                    transparent: true,
-                    opacity: 0.8
-                });
-
-                particles = new THREE.Points(geometry, material);
-                scene.add(particles);
-
-                // Mouse movement listener for interactive parallax
-                document.addEventListener('mousemove', onMouseMove, false);
-
-                // Handle window resizing
-                window.addEventListener('resize', onWindowResize, false);
-                
-                animateThreeJS();
-            }
-
-            function onMouseMove(event) {
-                mouseX = (event.clientX / window.innerWidth) * 2 - 1;
-                mouseY = -(event.clientY / window.innerHeight) * 2 + 1;
-            }
-
-            function onWindowResize() {
-                camera.aspect = window.innerWidth / window.innerHeight;
-                camera.updateProjectionMatrix();
-                renderer.setSize(window.innerWidth, window.innerHeight);
-            }
-
-            // Animation loop
-            function animateThreeJS() {
-                requestAnimationFrame(animateThreeJS);
-
-                // Animate particles
-                particles.rotation.x += 0.0005;
-                particles.rotation.y += 0.0005;
-
-                // Animate camera for parallax effect based on mouse position
-                camera.position.x += (mouseX - camera.position.x) * 0.005;
-                camera.position.y += (-mouseY - camera.position.y) * 0.005;
-                camera.lookAt(scene.position);
-
-                renderer.render(scene, camera);
-            }
-            
-            // Call the init function to start the 3D background
-            initThreeJS();
-
-            activatePillar('train');
-        });
+<!-- Widget Script -->
+<script src="https://cdn.jsdelivr.net/gh/juansebsol/n8n-chatbot-template@latest/chat-widget.js"></script>
     </script>
 </body>
 </html>
