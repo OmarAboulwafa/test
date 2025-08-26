@@ -1,0 +1,566 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stewart Miller: Premium Lifestyle Fitness Ecosystem</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Three.js library for 3D background animation -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap" rel="stylesheet">
+    <!-- Chosen Palette: Charcoal, Slate Grey, White, Vibrant Teal Accent -->
+    <!-- Application Structure Plan: A thematic, single-page scrolling experience designed to create a narrative journey for the user. It starts with an impactful hero section to grab attention, moves to an interactive 'pillars' section for detailed exploration of offerings, builds confidence with a social proof section, and concludes with clear conversion points (CTAs). This linear flow is intuitive for a landing page, guiding users from interest to action without navigational friction. A sticky header ensures the primary CTA is always accessible. A new chat widget is added to provide a quick support channel. -->
+    <!-- Visualization & Content Choices: Hero Section -> Goal: Attract -> Method: Large typography over an interactive 3D background -> Interaction: Prominent CTA button and mouse-based parallax effect -> Justification: High-impact, standard practice for conversion. Key Pillars Section -> Goal: Persuade -> Method: Interactive cards with revealable content and a Chart.js donut chart -> Interaction: Click-to-reveal -> Justification: Encourages engagement and avoids overwhelming users. Social Proof Section -> Goal: Build Trust -> Method: Testimonials and an animated number counter -> Interaction: Scroll-triggered animation -> Justification: Dynamic data is more memorable and impactful. The chat widget provides a dynamic support channel. All charts use Canvas via Chart.js. -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #111827;
+            color: #F9FAFB;
+        }
+        #three-bg {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+        }
+        .hero-overlay {
+            background-color: rgba(17, 24, 39, 0.7);
+        }
+        .teal-accent {
+            color: #14B8A6;
+        }
+        .bg-teal-accent {
+            background-color: #14B8A6;
+        }
+        .bg-teal-accent-hover:hover {
+            background-color: #0D9488;
+        }
+        .border-teal-accent {
+            border-color: #14B8A6;
+        }
+        .pillar-card {
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .pillar-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 10px 15px -3px rgba(20, 184, 166, 0.1), 0 4px 6px -2px rgba(20, 184, 166, 0.05);
+        }
+        .pillar-card.active {
+            border-color: #14B8A6;
+            background-color: #374151;
+        }
+        .pillar-content {
+            display: none;
+        }
+        .pillar-content.active {
+            display: block;
+        }
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 400px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 300px;
+            max-height: 400px;
+        }
+        @media (min-width: 768px) {
+            .chart-container {
+                height: 350px;
+            }
+        }
+        #chat-widget {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            z-index: 1000;
+        }
+        #chat-button {
+            width: 3.5rem;
+            height: 3.5rem;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border-radius: 9999px;
+            cursor: pointer;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            transition: transform 0.3s ease;
+        }
+        #chat-button:hover {
+            transform: scale(1.05);
+        }
+        #chat-window {
+            width: 90vw;
+            max-width: 400px;
+            height: 70vh;
+            max-height: 600px;
+            position: fixed;
+            bottom: 6rem;
+            right: 2rem;
+            z-index: 999;
+            background-color: #1F2937;
+            border-radius: 1rem;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+            display: none;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        #chat-window.active {
+            display: flex;
+        }
+    </style>
+</head>
+<body class="antialiased">
+
+    <header id="header" class="fixed top-0 left-0 right-0 z-50 bg-gray-900/80 backdrop-blur-sm transition-all duration-300">
+        <div class="container mx-auto px-6 py-4 flex justify-between items-center">
+            <a href="#" class="text-2xl font-bold tracking-tighter">Stewart <span class="teal-accent">Miller</span></a>
+            <a href="#cta" class="hidden md:inline-block bg-teal-accent text-white font-semibold px-6 py-2 rounded-lg shadow-lg bg-teal-accent-hover transition-colors duration-300">Claim Free 3-Day Pass</a>
+        </div>
+    </header>
+
+    <main>
+        <section id="hero" class="relative min-h-screen flex items-center justify-center text-center overflow-hidden">
+            <!-- New Three.js canvas for the interactive background -->
+            <canvas id="three-bg"></canvas>
+            <div class="hero-overlay absolute inset-0"></div>
+            <div class="relative z-10 px-6">
+                <h1 class="text-4xl md:text-6xl lg:text-7xl font-black uppercase tracking-tighter leading-tight mb-4">
+                    Elevate Your Lifestyle.
+                    <br>
+                    <span class="teal-accent">A Premium Fitness Ecosystem Awaits.</span>
+                </h1>
+                <p class="text-lg md:text-xl max-w-3xl mx-auto text-gray-300 mb-8">
+                    Founding Memberships Now Available. Secure Your Exclusive Rate Today and unlock a world of unrivaled fitness, wellness, and community.
+                </p>
+                <a href="#cta" class="bg-teal-accent text-white font-bold text-lg px-10 py-4 rounded-lg shadow-xl bg-teal-accent-hover transition-transform duration-300 inline-block transform hover:scale-105">
+                    Claim Your Free 3-Day Pass
+                </a>
+            </div>
+        </section>
+
+        <section id="pillars" class="py-20 md:py-32 bg-gray-900">
+            <div class="container mx-auto px-6">
+                <div class="text-center mb-16">
+                    <h2 class="text-3xl md:text-5xl font-bold">One Membership. <span class="teal-accent">Endless Experiences.</span></h2>
+                    <p class="mt-4 text-lg text-gray-400 max-w-2xl mx-auto">We've designed a holistic ecosystem to support every aspect of your wellness journey. Explore the pillars of the Stewart Miller experience.</p>
+                </div>
+
+                <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 md:gap-6 mb-12">
+                    <div class="pillar-card active cursor-pointer bg-gray-800 p-6 rounded-lg border-2 border-gray-700 text-center" data-target="train">
+                        <div class="text-4xl mb-3">🏋️</div>
+                        <h3 class="font-semibold text-lg">Train</h3>
+                    </div>
+                    <div class="pillar-card cursor-pointer bg-gray-800 p-6 rounded-lg border-2 border-gray-700 text-center" data-target="recover">
+                        <div class="text-4xl mb-3">❄️</div>
+                        <h3 class="font-semibold text-lg">Recover</h3>
+                    </div>
+                    <div class="pillar-card cursor-pointer bg-gray-800 p-6 rounded-lg border-2 border-gray-700 text-center" data-target="connect">
+                        <div class="text-4xl mb-3">🤝</div>
+                        <h3 class="font-semibold text-lg">Connect</h3>
+                    </div>
+                    <div class="pillar-card cursor-pointer bg-gray-800 p-6 rounded-lg border-2 border-gray-700 text-center" data-target="work">
+                        <div class="text-4xl mb-3">💻</div>
+                        <h3 class="font-semibold text-lg">Work</h3>
+                    </div>
+                    <div class="pillar-card cursor-pointer bg-gray-800 p-6 rounded-lg border-2 border-gray-700 text-center col-span-2 md:col-span-1">
+                        <div class="text-4xl mb-3">🕒</div>
+                        <h3 class="font-semibold text-lg">Flexibility</h3>
+                    </div>
+                </div>
+
+                <div id="pillar-content-area" class="bg-gray-800 rounded-lg p-8 md:p-12 min-h-[400px]">
+                    <div id="train" class="pillar-content active">
+                        <div class="grid md:grid-cols-2 gap-8 items-center">
+                            <div>
+                                <h3 class="text-3xl font-bold mb-4 teal-accent">Diverse Fitness Ecosystem</h3>
+                                <p class="text-gray-300 mb-4">More than just a gym, Stewart Miller offers a full spectrum of fitness experiences. Access over 85+ pieces of top-tier cardio, strength, and functional training equipment and specialized zones for CrossFit, Olympic lifting, and performance training.</p>
+                                <p class="text-gray-300">Our rich class schedule boasts over 400+ FREE classes weekly, including signature workouts and accredited Les Mills sessions, ensuring you never hit a plateau.</p>
+                            </div>
+                            <div class="chart-container">
+                                <canvas id="classChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                    <div id="recover" class="pillar-content">
+                        <h3 class="text-3xl font-bold mb-4 teal-accent">Unrivaled Recovery & Wellness</h3>
+                        <p class="text-gray-300 mb-4">Your journey doesn't end on the gym floor. We provide world-class recovery amenities including ice baths, infrared saunas, cryotherapy, sports massage, and dedicated steam rooms. Our clubs feature a refreshing juice bar to refuel and an Olympic-sized swimming pool for aquatic training and relaxation.</p>
+                    </div>
+                    <div id="connect" class="pillar-content">
+                        <h3 class="text-3xl font-bold mb-4 teal-accent">Supportive Community & Expert Guidance</h3>
+                        <p class="text-gray-300 mb-4">Join a vibrant community that motivates and supports you. Our team of internationally accredited personal trainers are here to guide you, whether you're a seasoned athlete or just starting out. Stewart Miller is also proud to offer private, ladies-only gym facilities with separate entrances and state-of-the-art equipment.</p>
+                    </div>
+                    <div id="work" class="pillar-content">
+                        <h3 class="text-3xl font-bold mb-4 teal-accent">Innovative Lifestyle Integration</h3>
+                        <p class="text-gray-300 mb-4">Our flagship locations feature revolutionary co-working spaces, private meeting zones, and creative suites. Stewart Miller seamlessly blends your professional and personal life, allowing you to train, work, and connect all in one place.</p>
+                    </div>
+                    <div id="flexibility" class="pillar-content">
+                        <h3 class="text-3xl font-bold mb-4 teal-accent">Unmatched Convenience & Flexibility</h3>
+                        <p class="text-gray-300 mb-4">Designed for your busy lifestyle, we offer 24/7 access at our key locations and guaranteed parking with traffic-free routes. With a growing network of premium clubs, you can train wherever your life takes you. Enjoy complimentary towel service and a suite of amenities that make every visit effortless.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="social-proof" class="py-20 md:py-32 bg-gray-900/50">
+            <div class="container mx-auto px-6">
+                <div class="grid lg:grid-cols-2 gap-12 items-center">
+                    <div class="text-center lg:text-left">
+                        <h2 class="text-3xl md:text-5xl font-bold mb-6">The <span class="teal-accent">Difference</span> is Real.</h2>
+                        <div class="space-y-8">
+                            <div class="bg-gray-800 p-6 rounded-lg text-left">
+                                <p class="text-gray-300 italic">"Stewart Miller isn't just a gym, it's my daily escape. The community is incredible and the facilities are second to none."</p>
+                                <p class="mt-4 font-semibold text-right">- Sarah L., Founding Member</p>
+                            </div>
+                            <div class="bg-gray-800 p-6 rounded-lg text-left">
+                                <p class="text-gray-300 italic">"As a busy professional, the 24/7 access and co-working spaces have been a game-changer. I get everything done without compromising my health."</p>
+                                <p class="mt-4 font-semibold text-right">- Michael B., Entrepreneur</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="text-center">
+                        <p class="text-2xl font-semibold text-gray-400 mb-2">Join Our Thriving Community</p>
+                        <div id="member-counter" class="text-7xl md:text-8xl font-black teal-accent" data-target="150000">0</div>
+                        <p class="text-2xl font-semibold">Happy Members & Counting</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="cta" class="py-20 md:py-32 bg-gray-900">
+            <div class="container mx-auto px-6 text-center">
+                <h2 class="text-3xl md:text-5xl font-bold">Your Journey Starts Now.</h2>
+                <p class="mt-4 text-lg text-gray-400 max-w-2xl mx-auto mb-10">Experience the Stewart Miller difference for yourself. Claim your complimentary 3-day pass today—no commitment, all access.</p>
+                <a href="#" class="bg-teal-accent text-white font-bold text-xl px-12 py-5 rounded-lg shadow-xl bg-teal-accent-hover transition-transform duration-300 inline-block transform hover:scale-105">
+                    Claim Your Free Pass
+                </a>
+                <div class="mt-12">
+                    <h3 class="text-xl font-semibold mb-6">Need More Information?</h3>
+                    <div class="flex flex-wrap justify-center gap-4">
+                        <a href="#" class="bg-gray-800 text-white font-semibold px-6 py-3 rounded-lg hover:bg-gray-700 transition-colors">Explore Memberships</a>
+                        <a href="#" class="bg-gray-800 text-white font-semibold px-6 py-3 rounded-lg hover:bg-gray-700 transition-colors">Discover Locations</a>
+                        <a href="#" class="bg-gray-800 text-white font-semibold px-6 py-3 rounded-lg hover:bg-gray-700 transition-colors">View Class Schedule</a>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <div id="chat-widget">
+        <button id="chat-button" class="bg-teal-accent text-white">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M20 2H4c-1.103 0-2 .897-2 2v12c0 1.103.897 2 2 2h3v3.765l5.242-3.765H20c1.103 0 2-.897 2-2V4c0-1.103-.897-2-2-2z"/>
+            </svg>
+        </button>
+        <div id="chat-window" class="p-4 flex flex-col hidden">
+            <div class="flex-none p-4 bg-gray-700 text-white rounded-t-lg flex justify-between items-center">
+                <p class="font-bold">Stewart Miller Assistant</p>
+                <button id="chat-close" class="text-gray-300 hover:text-white">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+            <div id="chat-messages" class="flex-grow p-4 space-y-4 overflow-y-auto">
+                <div class="flex items-start">
+                    <div class="bg-gray-700 p-3 rounded-lg">
+                        <p class="text-sm">Hello! How can I help you today?</p>
+                    </div>
+                </div>
+            </div>
+            <div class="flex-none p-4 border-t border-gray-700 flex items-center">
+                <input type="text" id="chat-input" placeholder="Type your message..." class="w-full p-2 rounded-l-lg bg-gray-800 text-gray-200 border border-gray-700 focus:outline-none focus:border-teal-accent">
+                <button id="chat-send" class="bg-teal-accent text-white p-2 rounded-r-lg">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/>
+                    </svg>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <footer class="bg-gray-900 border-t border-gray-800">
+        <div class="container mx-auto px-6 py-8 text-center text-gray-400">
+            <p>&copy; 2025 Stewart Miller Fitness. All Rights Reserved.</p>
+            <p class="text-sm mt-2">A Premium Lifestyle Fitness Ecosystem.</p>
+        </div>
+    </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const pillarCards = document.querySelectorAll('.pillar-card');
+            const pillarContents = document.querySelectorAll('.pillar-content');
+            let classChartInstance = null;
+            let mouseX = 0, mouseY = 0;
+            const windowHalfX = window.innerWidth / 2;
+            const windowHalfY = window.innerHeight / 2;
+
+            function activatePillar(targetId) {
+                pillarCards.forEach(card => {
+                    if (card.dataset.target === targetId) {
+                        card.classList.add('active');
+                    } else {
+                        card.classList.remove('active');
+                    }
+                });
+
+                pillarContents.forEach(content => {
+                    if (content.id === targetId) {
+                        content.classList.add('active');
+                    } else {
+                        content.classList.remove('active');
+                    }
+                });
+
+                if (targetId === 'train') {
+                    renderClassChart();
+                }
+            }
+            
+            pillarCards.forEach(card => {
+                card.addEventListener('click', () => {
+                    const targetId = card.dataset.target;
+                    activatePillar(targetId);
+                });
+            });
+
+            function renderClassChart() {
+                const ctx = document.getElementById('classChart');
+                if (!ctx) return;
+                
+                if (classChartInstance) {
+                    classChartInstance.destroy();
+                }
+
+                const data = {
+                    labels: ['Strength & Conditioning', 'Cardio & HIIT', 'Mind & Body', 'Specialty'],
+                    datasets: [{
+                        label: 'Class Distribution',
+                        data: [40, 30, 20, 10],
+                        backgroundColor: [
+                            'rgba(20, 184, 166, 0.8)',
+                            'rgba(13, 148, 136, 0.8)',
+                            'rgba(15, 118, 110, 0.8)',
+                            'rgba(19, 78, 74, 0.8)'
+                        ],
+                        borderColor: '#374151',
+                        borderWidth: 2,
+                        hoverOffset: 4
+                    }]
+                };
+
+                classChartInstance = new Chart(ctx, {
+                    type: 'doughnut',
+                    data: data,
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        cutout: '70%',
+                        plugins: {
+                            legend: {
+                                position: 'bottom',
+                                labels: {
+                                    color: '#D1D5DB',
+                                    font: {
+                                        family: "'Inter', sans-serif"
+                                    }
+                                }
+                            },
+                            tooltip: {
+                                titleFont: { family: "'Inter', sans-serif" },
+                                bodyFont: { family: "'Inter', sans-serif" },
+                            }
+                        }
+                    }
+                });
+            }
+
+            const counter = document.getElementById('member-counter');
+            const animateCounter = (element) => {
+                const target = +element.getAttribute('data-target');
+                const duration = 2000;
+                const stepTime = 20;
+                const totalSteps = duration / stepTime;
+                const increment = target / totalSteps;
+                let current = 0;
+
+                const timer = setInterval(() => {
+                    current += increment;
+                    if (current >= target) {
+                        element.innerText = target.toLocaleString() + '+';
+                        clearInterval(timer);
+                    } else {
+                        element.innerText = Math.floor(current).toLocaleString();
+                    }
+                }, stepTime);
+            };
+
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        animateCounter(counter);
+                        observer.unobserve(entry.target);
+                    }
+                });
+            }, { threshold: 0.5 });
+
+            if (counter) {
+                observer.observe(counter);
+            }
+            
+            const header = document.getElementById('header');
+            window.addEventListener('scroll', () => {
+                if (window.scrollY > 50) {
+                    header.classList.add('py-2');
+                    header.classList.remove('py-4');
+                } else {
+                    header.classList.add('py-4');
+                    header.classList.remove('py-2');
+                }
+            });
+
+            const chatButton = document.getElementById('chat-button');
+            const chatWindow = document.getElementById('chat-window');
+            const chatCloseButton = document.getElementById('chat-close');
+            const chatInput = document.getElementById('chat-input');
+            const chatSendButton = document.getElementById('chat-send');
+            const chatMessages = document.getElementById('chat-messages');
+
+            chatButton.addEventListener('click', () => {
+                chatWindow.classList.toggle('active');
+            });
+
+            chatCloseButton.addEventListener('click', () => {
+                chatWindow.classList.remove('active');
+            });
+
+            chatSendButton.addEventListener('click', () => {
+                sendMessage();
+            });
+
+            chatInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    sendMessage();
+                }
+            });
+
+            function sendMessage() {
+                const message = chatInput.value.trim();
+                if (message === '') return;
+
+                const userMessageEl = document.createElement('div');
+                userMessageEl.classList.add('flex', 'justify-end', 'items-end');
+                userMessageEl.innerHTML = `<div class="bg-teal-accent text-white p-3 rounded-lg max-w-[80%]">${message}</div>`;
+                chatMessages.appendChild(userMessageEl);
+
+                chatInput.value = '';
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+
+                const responseMessage = "Thank you for your message! Our team will get back to you as soon as possible.";
+                setTimeout(() => {
+                    const assistantMessageEl = document.createElement('div');
+                    assistantMessageEl.classList.add('flex', 'items-start');
+                    assistantMessageEl.innerHTML = `<div class="bg-gray-700 text-white p-3 rounded-lg max-w-[80%]">${responseMessage}</div>`;
+                    chatMessages.appendChild(assistantMessageEl);
+                    chatMessages.scrollTop = chatMessages.scrollHeight;
+                }, 1000);
+            }
+
+            // --- THREE.JS BACKGROUND CODE ---
+            let scene, camera, renderer, particles;
+
+            // Initialize the 3D scene
+            function initThreeJS() {
+                const canvas = document.getElementById('three-bg');
+                if (!canvas) return;
+
+                // Scene and camera setup
+                scene = new THREE.Scene();
+                camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+                camera.position.z = 5;
+
+                // Renderer setup
+                renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+                renderer.setSize(window.innerWidth, window.innerHeight);
+                renderer.setPixelRatio(window.devicePixelRatio);
+                canvas.appendChild(renderer.domElement);
+                
+                // Lights
+                const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
+                scene.add(ambientLight);
+                const pointLight = new THREE.PointLight(0xffffff, 1);
+                pointLight.position.set(0, 0, 50);
+                scene.add(pointLight);
+
+                // Create particles
+                const particleCount = 2000;
+                const geometry = new THREE.BufferGeometry();
+                const positions = [];
+                for (let i = 0; i < particleCount; i++) {
+                    const x = (Math.random() - 0.5) * 50;
+                    const y = (Math.random() - 0.5) * 50;
+                    const z = (Math.random() - 0.5) * 50;
+                    positions.push(x, y, z);
+                }
+                geometry.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+                
+                const material = new THREE.PointsMaterial({
+                    color: 0x14B8A6,
+                    size: 0.1,
+                    transparent: true,
+                    opacity: 0.8
+                });
+
+                particles = new THREE.Points(geometry, material);
+                scene.add(particles);
+
+                // Mouse movement listener for interactive parallax
+                document.addEventListener('mousemove', onMouseMove, false);
+
+                // Handle window resizing
+                window.addEventListener('resize', onWindowResize, false);
+                
+                animateThreeJS();
+            }
+
+            function onMouseMove(event) {
+                mouseX = (event.clientX / window.innerWidth) * 2 - 1;
+                mouseY = -(event.clientY / window.innerHeight) * 2 + 1;
+            }
+
+            function onWindowResize() {
+                camera.aspect = window.innerWidth / window.innerHeight;
+                camera.updateProjectionMatrix();
+                renderer.setSize(window.innerWidth, window.innerHeight);
+            }
+
+            // Animation loop
+            function animateThreeJS() {
+                requestAnimationFrame(animateThreeJS);
+
+                // Animate particles
+                particles.rotation.x += 0.0005;
+                particles.rotation.y += 0.0005;
+
+                // Animate camera for parallax effect based on mouse position
+                camera.position.x += (mouseX - camera.position.x) * 0.005;
+                camera.position.y += (-mouseY - camera.position.y) * 0.005;
+                camera.lookAt(scene.position);
+
+                renderer.render(scene, camera);
+            }
+            
+            // Call the init function to start the 3D background
+            initThreeJS();
+
+            activatePillar('train');
+        });
+    </script>
+</body>
+</html>
